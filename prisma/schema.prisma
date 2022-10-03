@@ -6,16 +6,67 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
-    // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.text annotations in model Account below
-    // Further reading: 
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
-model Example {
-    id String @id @default(cuid())
+model Recipe {
+    id                 String               @id @unique @default(cuid())
+    name               String
+    desc               String?
+    prepTime           Int?
+    cookTime           Int?
+    servings           Int?
+    steps              String[]
+    tags               Tag[]
+    ingredientOnRecipe IngredientOnRecipe[]
+    recipeOnShoplist   RecipeOnShoplist[]
+    user               User?                @relation(fields: [userId], references: [id])
+    userId             String?
+}
+
+model Ingredient {
+    id                 String               @id @unique @default(cuid())
+    name               String
+    unit               String
+    ingredientOnRecipe IngredientOnRecipe[]
+    user               User?                @relation(fields: [userId], references: [id])
+    userId             String?
+}
+
+model IngredientOnRecipe {
+    id           String     @id @unique @default(cuid())
+    recipe       Recipe     @relation(fields: [recipeId], references: [id])
+    ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+    quantity     Float
+    recipeId     String
+    ingredientId String
+}
+
+model Tag {
+    id      String   @id @unique @default(cuid())
+    name    String
+    recipes Recipe[]
+    user    User?    @relation(fields: [userId], references: [id])
+    userId  String?
+}
+
+model Shoplist {
+    id               String             @id @unique @default(cuid())
+    createdAt        DateTime
+    name             String?
+    recipeOnShoplist RecipeOnShoplist[]
+    user             User?              @relation(fields: [userId], references: [id])
+    userId           String?
+}
+
+model RecipeOnShoplist {
+    id         String   @id @unique @default(cuid())
+    recipe     Recipe   @relation(fields: [recipeId], references: [id])
+    shoplist   Shoplist @relation(fields: [shoplistId], references: [id])
+    amount     Float
+    recipeId   String
+    shoplistId String
 }
 
 // Necessary for Next auth
@@ -25,12 +76,12 @@ model Account {
     type              String
     provider          String
     providerAccountId String
-    refresh_token     String? //@db.Text
-    access_token      String? //@db.Text
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
     expires_at        Int?
     token_type        String?
     scope             String?
-    id_token          String? //@db.Text
+    id_token          String? @db.Text
     session_state     String?
     user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -53,6 +104,11 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+
+    recipes     Recipe[]
+    ingredients Ingredient[]
+    tags        Tag[]
+    shiplists   Shoplist[]
 }
 
 model VerificationToken {
