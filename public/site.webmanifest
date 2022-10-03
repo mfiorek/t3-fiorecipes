@@ -15,6 +15,5 @@
     ],
     "theme_color": "#e4e4e7",
     "background_color": "#e4e4e7",
-    "start_url": "https://fiorecipes.fiorek.codes/",
     "display": "standalone"
 }
