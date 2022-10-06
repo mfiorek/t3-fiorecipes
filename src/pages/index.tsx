@@ -1,6 +1,7 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
+import Navbar from '../components/Navbar';
 
 const Home: NextPage = () => {
   return (
@@ -17,11 +18,10 @@ const Home: NextPage = () => {
         <meta name='theme-color' content='#e4e4e7' />
       </Head>
 
-      <main className='flex min-h-screen flex-col bg-zinc-200'>
-        <div className='flex w-full grow flex-col items-center justify-center'>
-          <h1 className='text-5xl font-extrabold text-zinc-800'>
-            <p>fiorecipes</p>
-          </h1>
+      <main className='flex min-h-screen flex-col bg-zinc-400 text-zinc-800'>
+        <Navbar />
+        <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center justify-center bg-zinc-200 shadow-2xl'>
+          <h1 className='text-5xl font-extrabold'>fiorecipes</h1>
           <Image src='/fiorecipes-logo.svg' alt='logo' className='' width={180} height={180} />
         </div>
       </main>
