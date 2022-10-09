@@ -1,7 +1,8 @@
-import type { NextPage } from 'next';
+import type { GetServerSideProps, GetServerSidePropsContext, NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import Navbar from '../components/Navbar';
+import { getServerAuthSession } from '../server/common/get-server-auth-session';
 
 const Home: NextPage = () => {
   return (
@@ -30,3 +31,18 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getServerAuthSession(context);
+  if (!session?.user) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+  return {
+    props: {},
+  }
+}
