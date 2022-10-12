@@ -8,9 +8,10 @@ const Button: React.FC<React.PropsWithChildren<ButtonProps>> = ({ onClick, child
   return (
     <button
       onClick={onClick}
+      type='button'
       className='rounded py-1.5 px-3 font-semibold transition-all
-        hover:bg-zinc-300 hover:bg-opacity-50
-        active:focus:bg-zinc-300 active:focus:bg-opacity-50 active:focus:scale-95'
+        hover:bg-black hover:bg-opacity-20
+        active:focus:bg-black active:focus:bg-opacity-20 active:focus:scale-95'
     >
       {children}
     </button>
