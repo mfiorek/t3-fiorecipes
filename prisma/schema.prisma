@@ -26,8 +26,8 @@ model Recipe {
     tags               Tag[]
     ingredientOnRecipe IngredientOnRecipe[]
     recipeOnShoplist   RecipeOnShoplist[]
-    user               User?                @relation(fields: [userId], references: [id])
-    userId             String?
+    user               User                @relation(fields: [userId], references: [id])
+    userId             String
 }
 
 model Ingredient {
@@ -35,8 +35,8 @@ model Ingredient {
     name               String
     unitType           UnitType
     ingredientOnRecipe IngredientOnRecipe[]
-    user               User?                @relation(fields: [userId], references: [id])
-    userId             String?
+    user               User                @relation(fields: [userId], references: [id])
+    userId             String
 }
 
 model IngredientOnRecipe {
@@ -53,8 +53,8 @@ model Tag {
     id      String   @id @unique @default(cuid())
     name    String
     recipes Recipe[]
-    user    User?    @relation(fields: [userId], references: [id])
-    userId  String?
+    user    User    @relation(fields: [userId], references: [id])
+    userId  String
 }
 
 model Shoplist {
@@ -62,8 +62,8 @@ model Shoplist {
     createdAt        DateTime
     name             String?
     recipeOnShoplist RecipeOnShoplist[]
-    user             User?              @relation(fields: [userId], references: [id])
-    userId           String?
+    user             User              @relation(fields: [userId], references: [id])
+    userId           String
 }
 
 model RecipeOnShoplist {

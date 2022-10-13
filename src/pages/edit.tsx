@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerAuthSession } from '../server/common/get-server-auth-session';
-import { Ingredient } from '@prisma/client';
+import { Ingredient, Tag } from '@prisma/client';
 import { trpc } from '../utils/trpc';
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
 import convertUnits from '../utils/convert-units';
+import cuid from 'cuid';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
 import MyDialog from '../components/NewIngredientModal';
@@ -19,34 +20,39 @@ type Inputs = {
   servings?: number;
   steps: { value: string }[];
   ingredients: { ingredientId: string; quantity: number; unit: string }[];
-  tags: { name: string }[];
+  tags: { tagId: string; name: string; userId: string }[];
 };
 
-const EditPage = () => {
+const EditPage = ({ userId }: { userId: string }) => {
   const router = useRouter();
   const id = router.query.id;
 
   const [ingredientComboboxInputValue, setIngredientComboboxInputValue] = useState('');
   const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
+  const [tagComboboxInputValue, setTagComboboxInputValue] = useState('');
 
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
+  const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    getValues,
   } = useForm<Inputs>({ defaultValues: { steps: [{ value: '' }] } });
   const { fields: stepsFields, append: appendStep, remove: removeStep } = useFieldArray({ control, name: 'steps', rules: { minLength: 1 } });
   const { fields: ingredientsFields, append: appendIngredient, remove: removeIngredient } = useFieldArray({ control, name: 'ingredients', rules: { minLength: 1 } });
+  const { fields: tagsFields, append: appendTag, remove: removeTag } = useFieldArray({ control, name: 'tags' });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
 
-  if (ingredientsLoading || !ingredientsData) {
+  if (ingredientsLoading || !ingredientsData || tagsLoading || !tagsData) {
     return <div>Loading...</div>;
   }
 
   const filteredIngredients = ingredientsData.filter((ingredient) => ingredient.name.toLowerCase().includes(ingredientComboboxInputValue.toLowerCase()));
+  const filteredTags = tagsData.filter((tag) => tag.name.toLowerCase().includes(tagComboboxInputValue.toLowerCase()));
 
   const onAddIngredient = (id: string) => {
     appendIngredient({ ingredientId: id, quantity: NaN, unit: '' });
@@ -217,7 +223,84 @@ const EditPage = () => {
           </Combobox>
 
           {/* TAGS: */}
-          {/* <input {...register('tags')} /> */}
+          <p>Tags:</p>
+          <div className='flex w-full gap-2'>
+            {tagsFields.map((tagField, index) => {
+              return (
+                <div key={tagField.id} className='flex items-center justify-center gap-2 rounded bg-lime-500 px-2'>
+                  <input
+                    type='text'
+                    className='hidden'
+                    {...register(`tags.${index}.tagId` as const, {
+                      required: true,
+                    })}
+                  />
+                  <input
+                    type='text'
+                    className='hidden'
+                    {...register(`tags.${index}.name` as const, {
+                      required: true,
+                    })}
+                  />
+                  <input
+                    type='text'
+                    className='hidden'
+                    {...register(`tags.${index}.userId` as const, {
+                      required: true,
+                    })}
+                  />
+                  <span>#{getValues(`tags.${index}.name`)}</span>
+                  <button onClick={() => removeTag(index)}>×</button>
+                </div>
+              );
+            })}
+          </div>
+          <Combobox
+            value={{} as Tag}
+            onChange={(tag: Tag) => {
+              if (tag === null) {
+                appendTag({ tagId: cuid(), name: tagComboboxInputValue, userId: userId });
+              } else {
+                appendTag({ tagId: tag.id, name: tag.name, userId: tag.userId });
+              }
+            }}
+          >
+            <div className='relative mt-1'>
+              <div className='relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm'>
+                <Combobox.Input
+                  onChange={(event) => setTagComboboxInputValue(event.target.value)}
+                  displayValue={(tag: Tag) => tag.name}
+                  className='w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0'
+                />
+                <Combobox.Button className='absolute inset-y-0 right-0 flex items-center pr-2'>V</Combobox.Button>
+              </div>
+              <Combobox.Options className='absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
+                {filteredTags.length === 0 && tagComboboxInputValue !== '' ? (
+                  <Combobox.Option
+                    className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                    value={null}
+                  >
+                    <div>Add #{tagComboboxInputValue}</div>
+                  </Combobox.Option>
+                ) : (
+                  filteredTags.map((tag) => (
+                    <Combobox.Option
+                      key={tag.id}
+                      className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                      value={tag}
+                    >
+                      {({ selected, active }) => (
+                        <>
+                          <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>#{tag.name}</span>
+                          {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
+                        </>
+                      )}
+                    </Combobox.Option>
+                  ))
+                )}
+              </Combobox.Options>
+            </div>
+          </Combobox>
 
           <button type='submit'>Save</button>
         </form>
@@ -249,6 +332,8 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
     };
   }
   return {
-    props: {},
+    props: {
+      userId: session.user.id,
+    },
   };
 };
