@@ -229,28 +229,40 @@ const EditPage = ({ userId }: { userId: string }) => {
                 <Combobox.Button className='absolute inset-y-0 right-0 flex items-center pr-2'>V</Combobox.Button>
               </div>
               <Combobox.Options className='absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
-                <>
-                  {filteredIngredients.map((ingredient) => (
-                    <Combobox.Option
-                      key={ingredient.id}
-                      className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
-                      value={ingredient}
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{ingredient.name}</span>
-                          {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
-                        </>
-                      )}
-                    </Combobox.Option>
-                  ))}
+                {getValues('ingredients')
+                  .map((ingredient) => ingredientsData.find((ingr) => ingr.id === ingredient.ingredientId)?.name)
+                  .find((ingredient) => ingredient?.toLowerCase() === ingredientComboboxInputValue.toLowerCase()) !== undefined ? (
                   <Combobox.Option
-                    className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                    className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-red-400 text-white' : 'text-gray-900'}`}
                     value={null}
+                    disabled={true}
                   >
-                    <div>New...</div>
+                    <div>{ingredientComboboxInputValue} is already added</div>
                   </Combobox.Option>
-                </>
+                ) : (
+                  <>
+                    {filteredIngredients.map((ingredient) => (
+                      <Combobox.Option
+                        key={ingredient.id}
+                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                        value={ingredient}
+                      >
+                        {({ selected, active }) => (
+                          <>
+                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{ingredient.name}</span>
+                            {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
+                          </>
+                        )}
+                      </Combobox.Option>
+                    ))}
+                    <Combobox.Option
+                      className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                      value={null}
+                    >
+                      <div>New...</div>
+                    </Combobox.Option>
+                  </>
+                )}
               </Combobox.Options>
             </div>
           </Combobox>
