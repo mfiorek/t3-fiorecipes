@@ -31,8 +31,27 @@ const EditPage = ({ userId }: { userId: string }) => {
   const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
   const [tagComboboxInputValue, setTagComboboxInputValue] = useState('');
 
+  const client = trpc.useContext();
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
+  const addTagMutation = trpc.useMutation(['tag.add-tag'], {
+    onMutate: async ({ id, name }) => {
+      // Cancel any outgoing refetches
+      client.cancelQuery(['tag.get-all']);
+      // Snapshot previous value:
+      const previousTags = client.getQueryData(['tag.get-all']);
+      // Optimistically update to the new value:
+      if (previousTags) {
+        client.setQueryData(['tag.get-all'], [...previousTags, { id, name, userId: userId }]);
+      }
+      return { previousTags };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousTags) {
+        client.setQueryData(['tag.get-all'], context.previousTags);
+      }
+    },
+  });
 
   const {
     register,
@@ -51,8 +70,22 @@ const EditPage = ({ userId }: { userId: string }) => {
     return <div>Loading...</div>;
   }
 
-  const filteredIngredients = ingredientsData.filter((ingredient) => ingredient.name.toLowerCase().includes(ingredientComboboxInputValue.toLowerCase()));
-  const filteredTags = tagsData.filter((tag) => tag.name.toLowerCase().includes(tagComboboxInputValue.toLowerCase()));
+  const filteredIngredients = ingredientsData
+    .filter(
+      (ingredient) =>
+        !getValues('ingredients')
+          .map((ingredient) => ingredient.ingredientId)
+          .includes(ingredient.id),
+    )
+    .filter((ingredient) => ingredient.name.toLowerCase().includes(ingredientComboboxInputValue.toLowerCase()));
+  const filteredTags = tagsData
+    .filter(
+      (tag) =>
+        !getValues('tags')
+          .map((tag) => tag.tagId)
+          .includes(tag.id),
+    )
+    .filter((tag) => tag.name.toLowerCase().includes(tagComboboxInputValue.toLowerCase()));
 
   const onAddIngredient = (id: string) => {
     appendIngredient({ ingredientId: id, quantity: NaN, unit: '' });
@@ -259,10 +292,13 @@ const EditPage = ({ userId }: { userId: string }) => {
             value={{} as Tag}
             onChange={(tag: Tag) => {
               if (tag === null) {
-                appendTag({ tagId: cuid(), name: tagComboboxInputValue, userId: userId });
+                const newId = cuid();
+                addTagMutation.mutate({ id: newId, name: tagComboboxInputValue });
+                appendTag({ tagId: newId, name: tagComboboxInputValue, userId: userId });
               } else {
                 appendTag({ tagId: tag.id, name: tag.name, userId: tag.userId });
               }
+              setTagComboboxInputValue('');
             }}
           >
             <div className='relative mt-1'>
@@ -276,12 +312,22 @@ const EditPage = ({ userId }: { userId: string }) => {
               </div>
               <Combobox.Options className='absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
                 {filteredTags.length === 0 && tagComboboxInputValue !== '' ? (
-                  <Combobox.Option
-                    className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
-                    value={null}
-                  >
-                    <div>Add #{tagComboboxInputValue}</div>
-                  </Combobox.Option>
+                  getValues('tags').find((tag) => tag.name.toLowerCase() === tagComboboxInputValue.toLowerCase()) !== undefined ? (
+                    <Combobox.Option
+                      className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-red-400 text-white' : 'text-gray-900'}`}
+                      value={null}
+                      disabled={true}
+                    >
+                      <div>#{tagComboboxInputValue} is already added</div>
+                    </Combobox.Option>
+                  ) : (
+                    <Combobox.Option
+                      className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                      value={null}
+                    >
+                      <div>Add #{tagComboboxInputValue}</div>
+                    </Combobox.Option>
+                  )
                 ) : (
                   filteredTags.map((tag) => (
                     <Combobox.Option
