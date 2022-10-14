@@ -13,7 +13,7 @@ type NewIngredientInputs = {
   unitType: UnitType;
 };
 
-interface ModalProps {
+interface NewIngredinetModalProps {
   initialtext: string;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,7 +21,7 @@ interface ModalProps {
   onCancel: () => void;
 }
 
-const MyDialog: React.FC<ModalProps> = ({ initialtext, isOpen, setIsOpen, onSuccess, onCancel }) => {
+const NewIngredientModal: React.FC<NewIngredinetModalProps> = ({ initialtext, isOpen, setIsOpen, onSuccess, onCancel }) => {
   const { data: session } = useSession();
   const client = trpc.useContext();
   const {
@@ -131,4 +131,4 @@ const MyDialog: React.FC<ModalProps> = ({ initialtext, isOpen, setIsOpen, onSucc
   );
 };
 
-export default MyDialog;
+export default NewIngredientModal;

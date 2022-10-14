@@ -10,7 +10,7 @@ import convertUnits from '../utils/convert-units';
 import cuid from 'cuid';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
-import MyDialog from '../components/NewIngredientModal';
+import NewIngredientModal from '../components/NewIngredientModal';
 
 type Inputs = {
   name: string;
@@ -365,7 +365,7 @@ const EditPage = ({ userId }: { userId: string }) => {
       </div>
 
       {newIngredientModalOpen && (
-        <MyDialog
+        <NewIngredientModal
           initialtext={ingredientComboboxInputValue}
           isOpen={newIngredientModalOpen}
           setIsOpen={setNewIngredientModalOpen}
