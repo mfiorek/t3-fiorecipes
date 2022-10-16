@@ -55,6 +55,24 @@ export const recipeRouter = createProtectedRouter()
         where: {
           userId: ctx.session.user.id,
         },
+        include: {
+          ingredientOnRecipe: {
+            select: {
+              quantity: true,
+              unit: true,
+              ingredient: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          tags: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
     },
   });
