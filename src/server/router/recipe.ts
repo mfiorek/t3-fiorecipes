@@ -62,6 +62,7 @@ export const recipeRouter = createProtectedRouter()
               unit: true,
               ingredient: {
                 select: {
+                  id: true,
                   name: true,
                 },
               },
@@ -69,6 +70,7 @@ export const recipeRouter = createProtectedRouter()
           },
           tags: {
             select: {
+              id: true,
               name: true,
             },
           },

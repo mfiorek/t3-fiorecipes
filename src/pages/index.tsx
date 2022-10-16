@@ -1,10 +1,13 @@
 import type { GetServerSideProps, GetServerSidePropsContext, NextPage } from 'next';
-import Head from 'next/head';
-import Image from 'next/image';
-import Navbar from '../components/Navbar';
 import { getServerAuthSession } from '../server/common/get-server-auth-session';
+import { trpc } from '../utils/trpc';
+import Head from 'next/head';
+import Navbar from '../components/Navbar';
+import RecipeCard from '../components/RecipeCard';
 
 const Home: NextPage = () => {
+  const { data, isLoading } = trpc.useQuery(['recipe.get-all']);
+
   return (
     <>
       <Head>
@@ -21,9 +24,16 @@ const Home: NextPage = () => {
 
       <main className='flex min-h-screen flex-col bg-zinc-400 text-zinc-800'>
         <Navbar />
-        <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center justify-center bg-zinc-200 shadow-2xl'>
-          <h1 className='text-5xl font-extrabold'>fiorecipes</h1>
-          <Image src='/fiorecipes-logo.svg' alt='logo' className='' width={180} height={180} />
+        <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center bg-zinc-200 shadow-2xl'>
+          {isLoading || !data ? (
+            <div>Loading...</div>
+          ) : (
+            <div className='wrap flex w-full flex-col justify-center gap-4 p-4 lg:flex-row'>
+              {data.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} />
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </>
@@ -39,10 +49,10 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
       redirect: {
         destination: '/login',
         permanent: false,
-      }
-    }
+      },
+    };
   }
   return {
     props: {},
-  }
-}
+  };
+};
