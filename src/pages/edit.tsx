@@ -19,7 +19,7 @@ type Inputs = {
   cookTime?: number;
   servings?: number;
   steps: { value: string }[];
-  ingredients: { ingredientId: string; quantity: number; unit: string }[];
+  ingredients: { ingredientId: string; quantity: number | undefined; unit: string }[];
   tags: { tagId: string; name: string; userId: string }[];
 };
 
@@ -60,8 +60,16 @@ const EditPage = ({ userId }: { userId: string }) => {
     control,
     getValues,
   } = useForm<Inputs>({ defaultValues: { steps: [{ value: '' }] } });
-  const { fields: stepsFields, append: appendStep, remove: removeStep } = useFieldArray({ control, name: 'steps', rules: { minLength: 1 } });
-  const { fields: ingredientsFields, append: appendIngredient, remove: removeIngredient } = useFieldArray({ control, name: 'ingredients', rules: { minLength: 1 } });
+  const {
+    fields: stepsFields,
+    append: appendStep,
+    remove: removeStep,
+  } = useFieldArray({ control, name: 'steps', rules: { required: { value: true, message: 'Add at least one step' } } });
+  const {
+    fields: ingredientsFields,
+    append: appendIngredient,
+    remove: removeIngredient,
+  } = useFieldArray({ control, name: 'ingredients', rules: { required: { value: true, message: 'Add at least one ingredient' } } });
   const { fields: tagsFields, append: appendTag, remove: removeTag } = useFieldArray({ control, name: 'tags' });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
@@ -88,7 +96,7 @@ const EditPage = ({ userId }: { userId: string }) => {
     .filter((tag) => tag.name.toLowerCase().includes(tagComboboxInputValue.toLowerCase()));
 
   const onAddIngredient = (id: string) => {
-    appendIngredient({ ingredientId: id, quantity: NaN, unit: '' });
+    appendIngredient({ ingredientId: id, quantity: undefined, unit: '' });
     setIngredientComboboxInputValue('');
   };
 
@@ -105,8 +113,8 @@ const EditPage = ({ userId }: { userId: string }) => {
           {/* NAME: */}
           <label className='flex flex-col'>
             <span>Name:</span>
-            <input {...register('name', { required: true })} />
-            {errors.name && <span>This is empty...</span>}
+            <input {...register('name', { required: { value: true, message: "Name can't be empty..." } })} className={`${errors.name && 'border border-red-500'}`} />
+            {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
           </label>
 
           {/* DESC: */}
@@ -131,8 +139,12 @@ const EditPage = ({ userId }: { userId: string }) => {
             {/* SERVINGS: */}
             <label className='flex flex-col'>
               <span>Servings:</span>
-              <input type='number' {...register('servings', { required: true, valueAsNumber: true })} />
-              {errors.servings && <span>This is empty...</span>}
+              <input
+                type='number'
+                {...register('servings', { required: { value: true, message: "Servings can't be empty..." }, valueAsNumber: true })}
+                className={`${errors.servings && 'border border-red-500'}`}
+              />
+              {errors.servings && <span className='text-red-500'>{errors.servings.message}</span>}
             </label>
           </div>
 
@@ -151,17 +163,18 @@ const EditPage = ({ userId }: { userId: string }) => {
                   <label>
                     <input
                       type='text'
-                      className='w-full'
                       {...register(`steps.${index}.value` as const, {
-                        required: true,
+                        required: { value: true, message: "Step can't be empty..." },
                       })}
+                      className={`w-full ${errors.steps && errors.steps[index] && 'border border-red-500'}`}
                     />
-                    {errors.steps && errors.steps[index] && <span>This is empty...</span>}
+                    {errors.steps && errors.steps[index]?.value && <span className='text-red-500'>{errors.steps[index]?.value?.message}</span>}
                   </label>
                 </li>
               );
             })}
           </ol>
+          {errors.steps?.root && <span className='text-red-500'>{errors.steps.root.message}</span>}
 
           {/* INGREDIENTS: */}
           <p>Ingredients:</p>
@@ -180,18 +193,19 @@ const EditPage = ({ userId }: { userId: string }) => {
                   <label>
                     <input
                       type='number'
-                      className='w-full'
                       {...register(`ingredients.${index}.quantity` as const, {
-                        required: true,
+                        required: { value: true, message: "Quantity can't be empty..." },
                       })}
+                      className={`w-full ${errors.ingredients && errors.ingredients[index]?.quantity && 'border border-red-500'}`}
                     />
-                    {errors.ingredients && errors.ingredients[index] && <span>This is empty...</span>}
+                    {errors.ingredients && errors.ingredients[index]?.quantity && <span className='text-red-500'>{errors.ingredients[index]?.quantity?.message}</span>}
                   </label>
                   <label>
                     <select
                       {...register(`ingredients.${index}.unit` as const, {
-                        required: false,
+                        required: { value: true, message: "Unit can't be empty..." },
                       })}
+                      className={`w-full ${errors.ingredients && errors.ingredients[index]?.unit && 'border border-red-500'}`}
                     >
                       {convertUnits()
                         .list(ingredientsData.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
@@ -202,13 +216,14 @@ const EditPage = ({ userId }: { userId: string }) => {
                           </option>
                         ))}
                     </select>
-                    {errors.ingredients && errors.ingredients[index] && <span>This is empty...</span>}
+                    {errors.ingredients && errors.ingredients[index]?.unit && <span className='text-red-500'>{errors.ingredients[index]?.unit?.message}</span>}
                   </label>
                   <Button onClick={() => removeIngredient(index)}>-</Button>
                 </div>
               );
             })}
           </div>
+          {errors.ingredients?.root && <span className='text-red-500'>{errors.ingredients.root.message}</span>}
           <Combobox
             value={{} as Ingredient}
             onChange={(ingr: Ingredient) => {
@@ -360,7 +375,9 @@ const EditPage = ({ userId }: { userId: string }) => {
             </div>
           </Combobox>
 
-          <button type='submit'>Save</button>
+          <button type='submit' className='my-2 rounded bg-lime-500 px-3 py-1'>
+            Save
+          </button>
         </form>
       </div>
 
