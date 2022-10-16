@@ -17,7 +17,7 @@ type Inputs = {
   desc: string;
   prepTime?: number;
   cookTime?: number;
-  servings?: number;
+  servings: number;
   steps: { value: string }[];
   ingredients: { ingredientId: string; quantity: number | undefined; unit: string }[];
   tags: { tagId: string; name: string; userId: string }[];
@@ -52,6 +52,7 @@ const EditPage = ({ userId }: { userId: string }) => {
       }
     },
   });
+  const addRecipeMutation = trpc.useMutation(['recipe.create']);
 
   const {
     register,
@@ -72,7 +73,22 @@ const EditPage = ({ userId }: { userId: string }) => {
   } = useFieldArray({ control, name: 'ingredients', rules: { required: { value: true, message: 'Add at least one ingredient' } } });
   const { fields: tagsFields, append: appendTag, remove: removeTag } = useFieldArray({ control, name: 'tags' });
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
+    addRecipeMutation.mutate({
+      name: data.name,
+      desc: data.desc,
+      prepTime: data.prepTime || null,
+      cooktime: data.cookTime || null,
+      servings: data.servings,
+      steps: data.steps.map((step) => step.value),
+      ingredients: data.ingredients.map((ingredient) => ({
+        ingredientId: ingredient.ingredientId,
+        quantity: ingredient.quantity || 0,
+        unit: ingredient.unit,
+      })),
+      tags: data.tags.map((tag) => tag.tagId),
+    });
+  };
 
   if (ingredientsLoading || !ingredientsData || tagsLoading || !tagsData) {
     return <div>Loading...</div>;
@@ -195,6 +211,7 @@ const EditPage = ({ userId }: { userId: string }) => {
                       type='number'
                       {...register(`ingredients.${index}.quantity` as const, {
                         required: { value: true, message: "Quantity can't be empty..." },
+                        valueAsNumber: true,
                       })}
                       className={`w-full ${errors.ingredients && errors.ingredients[index]?.quantity && 'border border-red-500'}`}
                     />
