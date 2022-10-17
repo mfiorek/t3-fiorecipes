@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/router';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-import { getServerAuthSession } from '../server/common/get-server-auth-session';
+import { getServerAuthSession } from '../../server/common/get-server-auth-session';
 import { Ingredient, Tag } from '@prisma/client';
-import { trpc } from '../utils/trpc';
+import { trpc } from '../../utils/trpc';
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
-import convertUnits from '../utils/convert-units';
+import convertUnits from '../../utils/convert-units';
 import cuid from 'cuid';
-import Navbar from '../components/Navbar';
-import Button from '../components/Button';
-import NewIngredientModal from '../components/NewIngredientModal';
+import Navbar from '../../components/Navbar';
+import Button from '../../components/Button';
+import NewIngredientModal from '../../components/NewIngredientModal';
 
 type Inputs = {
   name: string;
@@ -23,10 +22,7 @@ type Inputs = {
   tags: { tagId: string; name: string; userId: string }[];
 };
 
-const EditPage = ({ userId }: { userId: string }) => {
-  const router = useRouter();
-  const id = router.query.id;
-
+const AddNewRecipePage = ({ userId }: { userId: string }) => {
   const [ingredientComboboxInputValue, setIngredientComboboxInputValue] = useState('');
   const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
   const [tagComboboxInputValue, setTagComboboxInputValue] = useState('');
@@ -98,7 +94,7 @@ const EditPage = ({ userId }: { userId: string }) => {
     .filter(
       (ingredient) =>
         !getValues('ingredients')
-          .map((ingredient) => ingredient.ingredientId)
+          ?.map((ingredient) => ingredient.ingredientId)
           .includes(ingredient.id),
     )
     .filter((ingredient) => ingredient.name.toLowerCase().includes(ingredientComboboxInputValue.toLowerCase()));
@@ -106,7 +102,7 @@ const EditPage = ({ userId }: { userId: string }) => {
     .filter(
       (tag) =>
         !getValues('tags')
-          .map((tag) => tag.tagId)
+          ?.map((tag) => tag.tagId)
           .includes(tag.id),
     )
     .filter((tag) => tag.name.toLowerCase().includes(tagComboboxInputValue.toLowerCase()));
@@ -124,7 +120,7 @@ const EditPage = ({ userId }: { userId: string }) => {
     <main className='flex min-h-screen flex-col bg-zinc-400 text-zinc-800'>
       <Navbar />
       <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center bg-zinc-200 p-8 shadow-2xl'>
-        EditPage {JSON.stringify(id)}
+        <h1 className='text-xl font-bold'>Add new recipe:</h1>
         <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col gap-2'>
           {/* NAME: */}
           <label className='flex flex-col'>
@@ -262,7 +258,7 @@ const EditPage = ({ userId }: { userId: string }) => {
               </div>
               <Combobox.Options className='absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
                 {getValues('ingredients')
-                  .map((ingredient) => ingredientsData.find((ingr) => ingr.id === ingredient.ingredientId)?.name)
+                  ?.map((ingredient) => ingredientsData.find((ingr) => ingr.id === ingredient.ingredientId)?.name)
                   .find((ingredient) => ingredient?.toLowerCase() === ingredientComboboxInputValue.toLowerCase()) !== undefined ? (
                   <Combobox.Option
                     className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-red-400 text-white' : 'text-gray-900'}`}
@@ -356,7 +352,7 @@ const EditPage = ({ userId }: { userId: string }) => {
               </div>
               <Combobox.Options className='absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
                 {filteredTags.length === 0 && tagComboboxInputValue !== '' ? (
-                  getValues('tags').find((tag) => tag.name.toLowerCase() === tagComboboxInputValue.toLowerCase()) !== undefined ? (
+                  getValues('tags')?.find((tag) => tag.name.toLowerCase() === tagComboboxInputValue.toLowerCase()) !== undefined ? (
                     <Combobox.Option
                       className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-red-400 text-white' : 'text-gray-900'}`}
                       value={null}
@@ -411,7 +407,7 @@ const EditPage = ({ userId }: { userId: string }) => {
   );
 };
 
-export default EditPage;
+export default AddNewRecipePage;
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerAuthSession(context);

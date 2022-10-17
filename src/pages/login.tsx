@@ -54,7 +54,7 @@ export const getServerSideProps: GetServerSideProps = async (context: GetServerS
   if (session?.user) {
     return {
       redirect: {
-        destination: '/',
+        destination: '/recipes',
         permanent: false,
       },
     };

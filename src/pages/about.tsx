@@ -1,0 +1,18 @@
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import Button from '../components/Button';
+
+const AboutPage = () => {
+  return (
+    <div className='flex h-screen flex-col items-center justify-center bg-zinc-700'>
+      <h1 className='text-7xl font-extrabold text-zinc-200'>About fiorecipes</h1>
+      <Image src='/fiorecipes-logo.svg' alt='logo' className='' width={180} height={180} />
+      <Link href='/login'>
+        <Button>Log in</Button>
+      </Link>
+    </div>
+  );
+};
+
+export default AboutPage;
