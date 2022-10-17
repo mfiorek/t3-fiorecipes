@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     <div className='sticky top-0 w-full bg-zinc-400 shadow-lg'>
       <div className='mx-auto flex items-center justify-between px-4 py-2 lg:max-w-[64rem]'>
-        <Link href='/recipes'>
+        <Link href='/recipes' passHref>
           <Button>
             <div className='flex items-center gap-2'>
               <div className='relative h-8 w-8'>
@@ -26,7 +26,7 @@ const Navbar = () => {
           </Button>
         </Link>
         <div className='flex items-center gap-3'>
-          <Link href='/recipes/add'>
+          <Link href='/recipes/add' passHref>
             <Button>Add recipe</Button>
           </Link>
           {session?.user && (
