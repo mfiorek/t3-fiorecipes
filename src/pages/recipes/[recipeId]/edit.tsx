@@ -1,9 +1,10 @@
 import React from 'react';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerAuthSession } from '../../../server/common/get-server-auth-session';
+import Content from '../../../components/Content';
 
 const EditRecipePage = ({ recipeId }: { recipeId: string }) => {
-  return <div>EditRecipePage for: {recipeId}</div>;
+  return <Content>EditRecipePage for: {recipeId}</Content>;
 };
 
 export default EditRecipePage;

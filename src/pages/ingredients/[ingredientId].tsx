@@ -1,9 +1,10 @@
 import React from 'react';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
+import Content from '../../components/Content';
 
 const IngredientPage = ({ ingredientId }: { ingredientId: string | string[] | undefined }) => {
-  return <div>IngredientPage for: {ingredientId}</div>;
+  return <Content>IngredientPage for: {ingredientId}</Content>;
 };
 
 export default IngredientPage;

@@ -1,9 +1,10 @@
 import React from 'react';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
+import Content from '../../components/Content';
 
 const TagPage = ({ tagId }: { tagId: string | string[] | undefined }) => {
-  return <div>TagPage for tag: {tagId}</div>;
+  return <Content>TagPage for tag: {tagId}</Content>;
 };
 
 export default TagPage;

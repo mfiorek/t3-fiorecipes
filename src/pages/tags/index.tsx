@@ -1,9 +1,10 @@
 import React from 'react';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
+import Content from '../../components/Content';
 
 const TagsPage = () => {
-  return <div>TagsPage</div>;
+  return <Content>TagsPage</Content>;
 };
 
 export default TagsPage;
