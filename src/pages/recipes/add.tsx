@@ -10,6 +10,7 @@ import cuid from 'cuid';
 import Navbar from '../../components/Navbar';
 import Button from '../../components/Button';
 import NewIngredientModal from '../../components/NewIngredientModal';
+import Loader from '../../components/Loader';
 
 type Inputs = {
   name: string;
@@ -87,7 +88,14 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
   };
 
   if (ingredientsLoading || !ingredientsData || tagsLoading || !tagsData) {
-    return <div>Loading...</div>;
+    return (
+      <main className='flex min-h-screen flex-col bg-zinc-400 text-zinc-800'>
+        <Navbar />
+        <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center bg-zinc-200 p-8 shadow-2xl'>
+          <Loader text='Loading...' />
+        </div>
+      </main>
+    );
   }
 
   const filteredIngredients = ingredientsData

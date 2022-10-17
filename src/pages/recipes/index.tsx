@@ -4,6 +4,7 @@ import { trpc } from '../../utils/trpc';
 import Head from 'next/head';
 import Navbar from '../../components/Navbar';
 import RecipeCard from '../../components/RecipeCard';
+import Loader from '../../components/Loader';
 
 const Home: NextPage = () => {
   const { data, isLoading } = trpc.useQuery(['recipe.get-all']);
@@ -26,7 +27,7 @@ const Home: NextPage = () => {
         <Navbar />
         <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center bg-zinc-200 shadow-2xl'>
           {isLoading || !data ? (
-            <div>Loading...</div>
+            <Loader text='Loading recipes...' />
           ) : (
             <div className='wrap flex w-full flex-col justify-center gap-4 p-4 lg:flex-row'>
               {data.map((recipe) => (
