@@ -10,7 +10,7 @@ const Button = React.forwardRef<HTMLButtonElement, React.PropsWithChildren<Butto
       ref={ref}
       onClick={onClick}
       type='button'
-      className='rounded py-1.5 px-3 font-semibold transition-all
+      className='rounded-md py-1.5 px-3 font-semibold transition-all
         hover:bg-black hover:bg-opacity-20
         active:focus:scale-95 active:focus:bg-black active:focus:bg-opacity-20'
     >
