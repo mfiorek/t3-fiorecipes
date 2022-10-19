@@ -21,7 +21,7 @@ model Recipe {
     desc               String?
     prepTime           Int?
     cookTime           Int?
-    servings           Int?
+    servings           Int
     steps              String[]
     tags               Tag[]
     ingredientOnRecipe IngredientOnRecipe[]
