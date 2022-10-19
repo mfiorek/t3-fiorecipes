@@ -77,6 +77,40 @@ export const recipeRouter = createProtectedRouter()
         },
       });
     },
+  })
+  .query('get-one', {
+    input: z.object({
+      id: z.string(),
+    }),
+    resolve: async ({ ctx, input }) => {
+      const { id } = input;
+      return await ctx.prisma.recipe.findFirst({
+        where: {
+          userId: ctx.session.user.id,
+          id,
+        },
+        include: {
+          ingredientOnRecipe: {
+            select: {
+              quantity: true,
+              unit: true,
+              ingredient: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          tags: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+    },
   });
 
 // UPDATE
