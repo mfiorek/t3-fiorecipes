@@ -27,7 +27,7 @@ const RecipePage: NextPage = () => {
       {selectedRecipe ? (
         <Recipe recipe={selectedRecipe} ingredients={ingredientsData} tags={tagsData} />
       ) : (
-        <div className='wrap flex w-full flex-col justify-center gap-4 lg:flex-row'>
+        <div className='wrap grid w-full grid-cols-1 flex-col justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           {recipeData.map((recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}

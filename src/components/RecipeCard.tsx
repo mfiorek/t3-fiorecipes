@@ -11,7 +11,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
   const setSelectedRecipe = useSetAtom(selectedRecipeAtom);
 
   return (
-    <div className='flex w-full flex-col gap-2 overflow-hidden rounded-xl bg-zinc-400 lg:w-[32rem]'>
+    <div className='flex w-full flex-col gap-2 overflow-hidden rounded-xl bg-zinc-400'>
       <h1 className='cursor-pointer bg-zinc-600 py-2 px-4 text-xl font-semibold text-zinc-200' onClick={() => setSelectedRecipe(recipe)}>
         {recipe.name}
       </h1>
