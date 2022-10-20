@@ -18,7 +18,7 @@ const RecipePage: NextPage = () => {
   if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData || (isRecipesStale && !selectedRecipe)) {
     return (
       <Content>
-        <Loader text='Loading recipes...' />;
+        <Loader text='Loading recipes...' />
       </Content>
     );
   }
