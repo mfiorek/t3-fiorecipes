@@ -11,11 +11,11 @@ import Recipe from '../../components/sites/Recipe';
 const RecipePage: NextPage = () => {
   const selectedRecipe = useAtomValue(selectedRecipeAtom);
 
-  const { data: recipeData, isLoading: recipeLoading } = trpc.useQuery(['recipe.get-all']);
+  const { data: recipeData, isLoading: recipeLoading, isStale: isRecipesStale } = trpc.useQuery(['recipe.get-all'], { staleTime: Infinity });
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
-  if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData) {
+  if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData || (isRecipesStale && !selectedRecipe)) {
     return (
       <Content>
         <Loader text='Loading recipes...' />;

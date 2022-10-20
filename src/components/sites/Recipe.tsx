@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/router';
-import { inferQueryOutput, trpc } from '../../utils/trpc';
-import { selectedRecipeAtom } from '../../state/atoms';
-import { useSetAtom } from 'jotai';
-import Button from '../Button';
-import NewIngredientModal from '../NewIngredientModal';
-import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
-import convertUnits from '../../utils/convert-units';
 import { Ingredient, Tag } from '@prisma/client';
+import { inferQueryOutput, trpc } from '../../utils/trpc';
+import { useSetAtom } from 'jotai';
+import { selectedRecipeAtom } from '../../state/atoms';
+import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
 import cuid from 'cuid';
+import Button from '../Button';
+import NewIngredientModal from '../NewIngredientModal';
+import convertUnits from '../../utils/convert-units';
 
 interface ViewRecipeProps {
   recipe: inferQueryOutput<'recipe.get-all'>[number];
@@ -62,11 +61,11 @@ const ViewRecipe: React.FC<ViewRecipeProps> = ({ recipe, setIsInEditMode }) => {
       <div className='flex gap-4 text-center'>
         <div className='flex flex-col items-center justify-center rounded-xl bg-zinc-400 px-4 py-2'>
           <h3 className='font-semibold'>Prep time:</h3>
-          <p>{recipe.prepTime} min</p>
+          <p>{Number(recipe.prepTime)} min</p>
         </div>
         <div className='flex flex-col items-center justify-center rounded-xl bg-zinc-400 px-4 py-2'>
           <h3 className='font-semibold'>Cook time:</h3>
-          <p>{recipe.cookTime} min</p>
+          <p>{Number(recipe.cookTime)} min</p>
         </div>
         <div className='flex flex-col items-center justify-center rounded-xl bg-zinc-400 px-4 py-2'>
           <h3 className='font-semibold'>Total time:</h3>
@@ -118,6 +117,7 @@ interface EditRecipeProps {
 }
 const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setIsInEditMode }) => {
   type Inputs = {
+    id: string;
     name: string;
     desc: string;
     prepTime?: number;
@@ -128,8 +128,7 @@ const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setI
     tags: { tagId: string; name: string; userId: string }[];
   };
 
-  const router = useRouter();
-
+  const setSelectedRecipe = useSetAtom(selectedRecipeAtom);
   const [disabled, setDisabled] = useState(false);
   const [ingredientComboboxInputValue, setIngredientComboboxInputValue] = useState('');
   const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
@@ -154,9 +153,12 @@ const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setI
       }
     },
   });
-  // TODO: change to update-recipe
-  const addRecipeMutation = trpc.useMutation(['recipe.create'], {
-    onSuccess: () => router.push('/recipes'),
+  const updateRecipeMutation = trpc.useMutation(['recipe.update'], {
+    onSuccess: (data) => {
+      client.invalidateQueries(['recipe.get-all']);
+      setSelectedRecipe(data);
+      setIsInEditMode(false);
+    },
   });
 
   const {
@@ -167,6 +169,7 @@ const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setI
     getValues,
   } = useForm<Inputs>({
     defaultValues: {
+      id: recipe.id,
       name: recipe.name,
       desc: recipe.desc || undefined,
       prepTime: recipe.prepTime || undefined,
@@ -180,7 +183,11 @@ const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setI
         quantity: ior.quantity,
         unit: ior.unit,
       })),
-      tags: recipe.tags,
+      tags: recipe.tags.map((tag) => ({
+        tagId: tag.id,
+        name: tag.name,
+        userId: recipe.userId,
+      })),
     },
   });
   const {
@@ -197,7 +204,8 @@ const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setI
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     setDisabled(true);
-    addRecipeMutation.mutate({
+    updateRecipeMutation.mutate({
+      id: recipe.id,
       name: data.name,
       desc: data.desc,
       prepTime: data.prepTime || null,
@@ -520,8 +528,13 @@ const EditRecipe: React.FC<EditRecipeProps> = ({ recipe, ingredients, tags, setI
             </div>
           </Combobox>
 
-          <button type='submit' className='my-2 rounded bg-lime-500 px-3 py-1'>
-            Save
+          <button type='submit' className='my-2 flex items-center gap-2 rounded bg-lime-500 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50'>
+            <span>Save</span>
+            {disabled && (
+              <svg xmlns='http://www.w3.org/2000/svg' className='h-4 w-4 animate-spin' viewBox='0 0 24 24' stroke='currentColor' fill='currentColor'>
+                <path d='M12 22c5.421 0 10-4.579 10-10h-2c0 4.337-3.663 8-8 8s-8-3.663-8-8c0-4.336 3.663-8 8-8V2C6.579 2 2 6.58 2 12c0 5.421 4.579 10 10 10z' />
+              </svg>
+            )}
           </button>
         </fieldset>
       </form>

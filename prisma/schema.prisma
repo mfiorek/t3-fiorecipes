@@ -47,6 +47,8 @@ model IngredientOnRecipe {
     unit         String
     recipeId     String
     ingredientId String
+
+    @@unique([recipeId, ingredientId])
 }
 
 model Tag {
