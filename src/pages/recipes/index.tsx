@@ -1,21 +1,16 @@
 import type { GetServerSideProps, GetServerSidePropsContext, NextPage } from 'next';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
 import { trpc } from '../../utils/trpc';
-import { selectedRecipeAtom } from '../../state/atoms';
-import { useAtomValue } from 'jotai';
 import RecipeCard from '../../components/RecipeCard';
 import Loader from '../../components/Loader';
 import Content from '../../components/Content';
-import Recipe from '../../components/sites/Recipe';
 
-const RecipePage: NextPage = () => {
-  const selectedRecipe = useAtomValue(selectedRecipeAtom);
-
+const RecipesPage: NextPage = () => {
   const { data: recipeData, isLoading: recipeLoading, isStale: isRecipesStale } = trpc.useQuery(['recipe.get-all'], { staleTime: Infinity });
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
-  if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData || (isRecipesStale && !selectedRecipe)) {
+  if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData || isRecipesStale) {
     return (
       <Content>
         <Loader text='Loading recipes...' />
@@ -24,20 +19,16 @@ const RecipePage: NextPage = () => {
   }
   return (
     <Content>
-      {selectedRecipe ? (
-        <Recipe recipe={selectedRecipe} ingredients={ingredientsData} tags={tagsData} />
-      ) : (
-        <div className='wrap grid w-full grid-cols-1 flex-col justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-          {recipeData.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))}
-        </div>
-      )}
+      <div className='wrap grid w-full grid-cols-1 flex-col justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+        {recipeData.map((recipe) => (
+          <RecipeCard key={recipe.id} recipe={recipe} />
+        ))}
+      </div>
     </Content>
   );
 };
 
-export default RecipePage;
+export default RecipesPage;
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerAuthSession(context);

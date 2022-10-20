@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GetServerSideProps, GetServerSidePropsContext } from 'next';
+import { GetServerSideProps, GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { useRouter } from 'next/router';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
 import { Ingredient, Tag } from '@prisma/client';
@@ -14,18 +14,23 @@ import NewIngredientModal from '../../components/NewIngredientModal';
 import Loader from '../../components/Loader';
 import Content from '../../components/Content';
 
-type Inputs = {
-  name: string;
-  desc: string;
-  prepTime?: number;
-  cookTime?: number;
-  servings: number;
-  steps: { value: string }[];
-  ingredients: { ingredientId: string; quantity: number | undefined; unit: string }[];
-  tags: { tagId: string; name: string; userId: string }[];
-};
+interface AddNewRecipeContentsProps {
+  userId: string;
+  ingredients: Ingredient[];
+  tags: Tag[];
+}
+const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ingredients, tags }) => {
+  type Inputs = {
+    name: string;
+    desc: string;
+    prepTime?: number;
+    cookTime?: number;
+    servings: number;
+    steps: { value: string }[];
+    ingredients: { ingredientId: string; quantity: number | undefined; unit: string }[];
+    tags: { tagId: string; name: string; userId: string }[];
+  };
 
-const AddNewRecipePage = ({ userId }: { userId: string }) => {
   const router = useRouter();
 
   const [disabled, setDisabled] = useState(false);
@@ -34,8 +39,6 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
   const [tagComboboxInputValue, setTagComboboxInputValue] = useState('');
 
   const client = trpc.useContext();
-  const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
-  const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
   const addTagMutation = trpc.useMutation(['tag.add-tag'], {
     onMutate: async ({ id, name }) => {
       // Cancel any outgoing refetches
@@ -55,7 +58,10 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
     },
   });
   const addRecipeMutation = trpc.useMutation(['recipe.create'], {
-    onSuccess: () => router.push('/recipes'),
+    onSuccess: () => {
+      client.invalidateQueries(['recipe.get-all']);
+      router.push('/recipes');
+    },
   });
 
   const {
@@ -95,18 +101,7 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
     });
   };
 
-  if (ingredientsLoading || !ingredientsData || tagsLoading || !tagsData) {
-    return (
-      <main className='flex min-h-screen flex-col bg-zinc-400 text-zinc-800'>
-        <Navbar />
-        <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center bg-zinc-200 p-8 shadow-2xl'>
-          <Loader text='Loading...' />
-        </div>
-      </main>
-    );
-  }
-
-  const filteredIngredients = ingredientsData
+  const filteredIngredients = ingredients
     .filter(
       (ingredient) =>
         !getValues('ingredients')
@@ -114,7 +109,7 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
           .includes(ingredient.id),
     )
     .filter((ingredient) => ingredient.name.toLowerCase().includes(ingredientComboboxInputValue.toLowerCase()));
-  const filteredTags = tagsData
+  const filteredTags = tags
     .filter(
       (tag) =>
         !getValues('tags')
@@ -216,7 +211,7 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
                       required: true,
                     })}
                   />
-                  <span>{ingredientsData.find((ingr) => ingr.id === ingredientField.ingredientId)?.name || '-'}</span>
+                  <span>{ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.name || '-'}</span>
                   <label>
                     <input
                       type='number'
@@ -236,7 +231,7 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
                       className={`w-full ${errors.ingredients && errors.ingredients[index]?.unit && 'border border-red-500'}`}
                     >
                       {convertUnits()
-                        .list(ingredientsData.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
+                        .list(ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
                         .filter((unit) => unit.system === 'metric')
                         .map((unit) => (
                           <option key={unit.abbr} value={unit.abbr}>
@@ -273,7 +268,7 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
               </div>
               <Combobox.Options className='absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
                 {getValues('ingredients')
-                  ?.map((ingredient) => ingredientsData.find((ingr) => ingr.id === ingredient.ingredientId)?.name)
+                  ?.map((ingredient) => ingredients.find((ingr) => ingr.id === ingredient.ingredientId)?.name)
                   .find((ingredient) => ingredient?.toLowerCase() === ingredientComboboxInputValue.toLowerCase()) !== undefined ? (
                   <Combobox.Option
                     className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-red-400 text-white' : 'text-gray-900'}`}
@@ -403,8 +398,13 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
             </div>
           </Combobox>
 
-          <button type='submit' className='my-2 rounded bg-lime-500 px-3 py-1'>
-            Save
+          <button type='submit' className='my-2 flex items-center gap-2 rounded bg-lime-500 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50'>
+            <span>Save</span>
+            {disabled && (
+              <svg xmlns='http://www.w3.org/2000/svg' className='h-4 w-4 animate-spin' viewBox='0 0 24 24' stroke='currentColor' fill='currentColor'>
+                <path d='M12 22c5.421 0 10-4.579 10-10h-2c0 4.337-3.663 8-8 8s-8-3.663-8-8c0-4.336 3.663-8 8-8V2C6.579 2 2 6.58 2 12c0 5.421 4.579 10 10 10z' />
+              </svg>
+            )}
           </button>
         </fieldset>
       </form>
@@ -420,6 +420,23 @@ const AddNewRecipePage = ({ userId }: { userId: string }) => {
       )}
     </Content>
   );
+};
+
+const AddNewRecipePage: React.FC<InferGetServerSidePropsType<typeof getServerSideProps>> = ({ userId }) => {
+  const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
+  const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
+
+  if (ingredientsLoading || tagsLoading || !ingredientsData || !tagsData) {
+    return (
+      <main className='flex min-h-screen flex-col bg-zinc-400 text-zinc-800'>
+        <Navbar />
+        <div className='mx-auto flex w-full max-w-5xl grow flex-col items-center bg-zinc-200 p-8 shadow-2xl'>
+          <Loader text='Loading...' />
+        </div>
+      </main>
+    );
+  }
+  return <AddNewRecipeContents userId={userId} ingredients={ingredientsData} tags={tagsData} />;
 };
 
 export default AddNewRecipePage;
