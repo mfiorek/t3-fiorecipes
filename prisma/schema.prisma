@@ -26,7 +26,7 @@ model Recipe {
     tags               Tag[]
     ingredientOnRecipe IngredientOnRecipe[]
     recipeOnShoplist   RecipeOnShoplist[]
-    user               User                @relation(fields: [userId], references: [id])
+    user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId             String
 }
 
@@ -35,14 +35,14 @@ model Ingredient {
     name               String
     unitType           UnitType
     ingredientOnRecipe IngredientOnRecipe[]
-    user               User                @relation(fields: [userId], references: [id])
+    user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId             String
 }
 
 model IngredientOnRecipe {
     id           String     @id @unique @default(cuid())
-    recipe       Recipe     @relation(fields: [recipeId], references: [id])
-    ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+    recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+    ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
     quantity     Float
     unit         String
     recipeId     String
@@ -55,7 +55,7 @@ model Tag {
     id      String   @id @unique @default(cuid())
     name    String
     recipes Recipe[]
-    user    User    @relation(fields: [userId], references: [id])
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId  String
 }
 
@@ -64,14 +64,14 @@ model Shoplist {
     createdAt        DateTime
     name             String?
     recipeOnShoplist RecipeOnShoplist[]
-    user             User              @relation(fields: [userId], references: [id])
+    user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId           String
 }
 
 model RecipeOnShoplist {
     id         String   @id @unique @default(cuid())
-    recipe     Recipe   @relation(fields: [recipeId], references: [id])
-    shoplist   Shoplist @relation(fields: [shoplistId], references: [id])
+    recipe     Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+    shoplist   Shoplist @relation(fields: [shoplistId], references: [id], onDelete: Cascade)
     amount     Float
     recipeId   String
     shoplistId String

@@ -157,6 +157,19 @@ export const recipeRouter = createProtectedRouter()
         },
       });
     },
-  });
+  })
 
-// DELETE
+  // DELETE
+  .mutation('delete', {
+    input: z.object({
+      id: z.string(),
+    }),
+    resolve: async ({ ctx, input }) => {
+      const { id } = input;
+      return await ctx.prisma.recipe.delete({
+        where: {
+          id,
+        },
+      });
+    },
+  });
