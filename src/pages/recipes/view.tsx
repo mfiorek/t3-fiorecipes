@@ -55,11 +55,13 @@ const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe }) => {
           </div>
         </div>
         <div className='flex gap-2'>
-          {recipe.tags.map((tag) => (
-            <span key={tag.id} className='rounded-full bg-lime-600 px-3'>
-              {tag.name}
-            </span>
-          ))}
+          {recipe.tags
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((tag) => (
+              <span key={tag.id} className='rounded-full bg-lime-600 px-3'>
+                {tag.name}
+              </span>
+            ))}
         </div>
         <div>
           <i>{recipe.desc}</i>

@@ -279,20 +279,22 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
                   </Combobox.Option>
                 ) : (
                   <>
-                    {filteredIngredients.map((ingredient) => (
-                      <Combobox.Option
-                        key={ingredient.id}
-                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
-                        value={ingredient}
-                      >
-                        {({ selected, active }) => (
-                          <>
-                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{ingredient.name}</span>
-                            {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
-                          </>
-                        )}
-                      </Combobox.Option>
-                    ))}
+                    {filteredIngredients
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((ingredient) => (
+                        <Combobox.Option
+                          key={ingredient.id}
+                          className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                          value={ingredient}
+                        >
+                          {({ selected, active }) => (
+                            <>
+                              <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>{ingredient.name}</span>
+                              {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
+                            </>
+                          )}
+                        </Combobox.Option>
+                      ))}
                     <Combobox.Option
                       className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
                       value={null}
@@ -379,20 +381,22 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
                     </Combobox.Option>
                   )
                 ) : (
-                  filteredTags.map((tag) => (
-                    <Combobox.Option
-                      key={tag.id}
-                      className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
-                      value={tag}
-                    >
-                      {({ selected, active }) => (
-                        <>
-                          <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>#{tag.name}</span>
-                          {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
-                        </>
-                      )}
-                    </Combobox.Option>
-                  ))
+                  filteredTags
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((tag) => (
+                      <Combobox.Option
+                        key={tag.id}
+                        className={({ active }) => `relative cursor-default select-none py-2 pl-10 pr-4 ${active ? 'bg-teal-600 text-white' : 'text-gray-900'}`}
+                        value={tag}
+                      >
+                        {({ selected, active }) => (
+                          <>
+                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>#{tag.name}</span>
+                            {selected ? <span className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? 'text-white' : 'text-teal-600'}`}>X</span> : null}
+                          </>
+                        )}
+                      </Combobox.Option>
+                    ))
                 )}
               </Combobox.Options>
             </div>

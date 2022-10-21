@@ -23,11 +23,13 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
           <span>Ingredients: {recipe.ingredientOnRecipe.map((ior) => ior.ingredient.name).join(', ')}</span>
         </div>
         <div className='flex flex-wrap gap-2'>
-          {recipe.tags.map((tag) => (
-            <div key={tag.id} className='rounded-full bg-lime-600 px-3'>
-              {tag.name}
-            </div>
-          ))}
+          {recipe.tags
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((tag) => (
+              <div key={tag.id} className='rounded-full bg-lime-600 px-3'>
+                {tag.name}
+              </div>
+            ))}
         </div>
       </div>
     </div>

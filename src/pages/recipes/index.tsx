@@ -20,9 +20,11 @@ const RecipesPage: NextPage = () => {
   return (
     <Content>
       <div className='wrap grid w-full grid-cols-1 flex-col justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        {recipeData.map((recipe) => (
-          <RecipeCard key={recipe.id} recipe={recipe} />
-        ))}
+        {recipeData
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((recipe) => (
+            <RecipeCard key={recipe.id} recipe={recipe} />
+          ))}
       </div>
     </Content>
   );
