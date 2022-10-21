@@ -15,7 +15,7 @@ const LoginPage = () => {
         <section className='flex flex-col items-center'>
           <Image src='/fiorecipes-logo.svg' alt='logo' className='' width={180} height={180} />
           <h1 className='text-4xl font-bold'>Login to</h1>
-          <h1 className='text-5xl font-extrabold'>fior-t3-todo</h1>
+          <h1 className='text-5xl font-extrabold'>fiorecipes</h1>
         </section>
         <section className='flex w-96 flex-col items-center gap-4 rounded-2xl bg-zinc-500 p-6 font-medium shadow-2xl'>
           <p className='text-2xl'>
