@@ -4,6 +4,7 @@ import { getServerAuthSession } from '../../server/common/get-server-auth-sessio
 import { inferQueryOutput, trpc } from '../../utils/trpc';
 import { useAtomValue } from 'jotai';
 import { searchAtom } from '../../state/atoms';
+import AutoAnimate from '../../components/AutoAnimate';
 import RecipeCard from '../../components/RecipeCard';
 import Loader from '../../components/Loader';
 import Content from '../../components/Content';
@@ -43,13 +44,13 @@ const RecipesPage: NextPage = () => {
   }
   return (
     <Content>
-      <div className='wrap grid w-full grid-cols-1 flex-col justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+      <AutoAnimate className='wrap grid w-full grid-cols-1 flex-col justify-center gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {filteredRecipies
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
-      </div>
+      </AutoAnimate>
     </Content>
   );
 };
