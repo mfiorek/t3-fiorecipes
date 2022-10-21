@@ -13,7 +13,7 @@ const Navbar = () => {
   const setSearch = useSetAtom(searchAtom);
 
   return (
-    <div className='sticky top-0 w-full bg-zinc-400 shadow-lg'>
+    <div className='sticky top-0 z-30 w-full bg-zinc-400 shadow-lg'>
       <div className='mx-auto flex items-center justify-between px-4 py-2 lg:max-w-[64rem]'>
         <Link href='/recipes' passHref>
           <Button>
