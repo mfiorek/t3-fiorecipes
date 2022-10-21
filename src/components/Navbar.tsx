@@ -26,26 +26,19 @@ const Navbar = () => {
           </Button>
         </Link>
         <div className='flex items-center gap-2'>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              console.log('searched');
-            }}
-            className='relative text-zinc-800'
-            placeholder='Search...'
-            tabIndex={0}
-          >
+          <div className='relative'>
             <input
               type='text'
               className='rounded-full border border-zinc-600 bg-zinc-200 py-1 pl-8 pr-4 focus-visible:outline-none'
               onChange={(e) => setSearch(e.target.value.split(' ').filter((word) => !!word.length))}
+              placeholder='Search...'
             />
             <div className='absolute left-0 top-0 flex justify-end p-2'>
               <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className='h-5 w-5'>
                 <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z' />
               </svg>
             </div>
-          </form>
+          </div>
           <Popover className='relative'>
             <>
               <Popover.Button
