@@ -6,7 +6,7 @@ import { Ingredient, Tag } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
-import convertUnits from '../../utils/convert-units';
+import convertUnits, { forbiddenUnits } from '../../utils/convert-units';
 import cuid from 'cuid';
 import Navbar from '../../components/Navbar';
 import Button from '../../components/Button';
@@ -230,14 +230,22 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
                       })}
                       className={`w-full ${errors.ingredients && errors.ingredients[index]?.unit && 'border border-red-500'}`}
                     >
-                      {convertUnits()
-                        .list(ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
-                        .filter((unit) => unit.system === 'metric')
-                        .map((unit) => (
-                          <option key={unit.abbr} value={unit.abbr}>
-                            {unit.plural}
-                          </option>
-                        ))}
+                      {ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType === 'custom'
+                        ? ingredients
+                            .find((ingr) => ingr.id === ingredientField.ingredientId)
+                            ?.customUnitNames?.map((unit) => (
+                              <option key={unit} value={unit}>
+                                {unit}
+                              </option>
+                            ))
+                        : convertUnits()
+                            .list(ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
+                            .filter((unit) => !forbiddenUnits.includes(unit.abbr))
+                            .map((unit) => (
+                              <option key={unit.abbr} value={unit.abbr}>
+                                {unit.plural}
+                              </option>
+                            ))}
                     </select>
                     {errors.ingredients && errors.ingredients[index]?.unit && <span className='text-red-500'>{errors.ingredients[index]?.unit?.message}</span>}
                   </label>

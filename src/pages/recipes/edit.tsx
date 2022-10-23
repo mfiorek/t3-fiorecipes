@@ -7,7 +7,7 @@ import { getServerAuthSession } from '../../server/common/get-server-auth-sessio
 import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
 import cuid from 'cuid';
-import convertUnits from '../../utils/convert-units';
+import convertUnits, { forbiddenUnits } from '../../utils/convert-units';
 import Link from 'next/link';
 import Content from '../../components/Content';
 import Loader from '../../components/Loader';
@@ -302,14 +302,22 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
                       })}
                       className={`w-full ${errors.ingredients && errors.ingredients[index]?.unit && 'border border-red-500'}`}
                     >
-                      {convertUnits()
-                        .list(ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
-                        .filter((unit) => unit.system === 'metric')
-                        .map((unit) => (
-                          <option key={unit.abbr} value={unit.abbr}>
-                            {unit.plural}
-                          </option>
-                        ))}
+                      {ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType === 'custom'
+                        ? ingredients
+                            .find((ingr) => ingr.id === ingredientField.ingredientId)
+                            ?.customUnitNames?.map((unit) => (
+                              <option key={unit} value={unit}>
+                                {unit}
+                              </option>
+                            ))
+                        : convertUnits()
+                            .list(ingredients.find((ingr) => ingr.id === ingredientField.ingredientId)?.unitType)
+                            .filter((unit) => !forbiddenUnits.includes(unit.abbr))
+                            .map((unit) => (
+                              <option key={unit.abbr} value={unit.abbr}>
+                                {unit.plural}
+                              </option>
+                            ))}
                     </select>
                     {errors.ingredients && errors.ingredients[index]?.unit && <span className='text-red-500'>{errors.ingredients[index]?.unit?.message}</span>}
                   </label>
