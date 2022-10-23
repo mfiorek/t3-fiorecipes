@@ -10,10 +10,12 @@ import Button from './Button';
 const Navbar = () => {
   const { data: session } = useSession();
   const [isDisabled, setIsDisabled] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchingInput, setSearchingInput] = useState('');
   const setSearch = useSetAtom(searchAtom);
 
   return (
-    <div className='sticky top-0 z-30 w-full bg-zinc-400 shadow-lg'>
+    <div className='sticky top-0 z-30 w-full bg-zinc-400  shadow-lg'>
       <div className='mx-auto flex items-center justify-between px-4 py-2 lg:max-w-[64rem]'>
         <Link href='/recipes' passHref>
           <Button>
@@ -26,19 +28,29 @@ const Navbar = () => {
           </Button>
         </Link>
         <div className='flex items-center gap-2'>
-          <div className='relative'>
+          <div className={`mx-auto hidden items-center justify-between overflow-hidden transition-all duration-300 lg:inline-block ${!isSearching && '-translate-y-[200%]'}`}>
             <input
               type='text'
-              className='rounded-full border border-zinc-600 bg-zinc-200 py-1 pl-8 pr-4 focus-visible:outline-none'
-              onChange={(e) => setSearch(e.target.value.split(' ').filter((word) => !!word.length))}
+              className='w-full rounded-full border border-zinc-600 bg-zinc-200 py-1 px-4 focus:bg-white focus-visible:outline-none'
+              onChange={(e) => {
+                setSearch(e.target.value.split(' ').filter((word) => !!word.length));
+                setSearchingInput(e.target.value);
+              }}
+              value={searchingInput}
               placeholder='Search...'
             />
-            <div className='absolute left-0 top-0 flex justify-end p-2'>
-              <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className='h-5 w-5'>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z' />
-              </svg>
-            </div>
           </div>
+          <button
+            onClick={() => {
+              setIsSearching(!isSearching);
+              setSearch(['']);
+              setSearchingInput('');
+            }}
+          >
+            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className='h-5 w-5'>
+              <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z' />
+            </svg>
+          </button>
           <Popover className='relative'>
             <>
               <Popover.Button
@@ -119,6 +131,18 @@ const Navbar = () => {
             </>
           </Popover>
         </div>
+      </div>
+      <div className={`mx-auto items-center justify-between overflow-hidden px-4 transition-all duration-300 lg:hidden ${isSearching ? 'h-10' : 'h-0'}`}>
+        <input
+          type='text'
+          className='w-full rounded-full border border-zinc-600 bg-zinc-200 py-1 px-4 focus:bg-white focus-visible:outline-none'
+          onChange={(e) => {
+            setSearch(e.target.value.split(' ').filter((word) => !!word.length));
+            setSearchingInput(e.target.value);
+          }}
+          value={searchingInput}
+          placeholder='Search...'
+        />
       </div>
     </div>
   );
