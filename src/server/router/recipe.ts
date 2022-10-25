@@ -5,6 +5,7 @@ export const recipeRouter = createProtectedRouter()
   // CREATE
   .mutation('create', {
     input: z.object({
+      id: z.string(),
       name: z.string(),
       desc: z.string().nullable(),
       prepTime: z.number().nullable(),
@@ -21,9 +22,10 @@ export const recipeRouter = createProtectedRouter()
       tags: z.array(z.string()).nullable(),
     }),
     resolve: async ({ ctx, input }) => {
-      const { name, desc, prepTime, cooktime, servings, steps, ingredients, tags } = input;
+      const { id, name, desc, prepTime, cooktime, servings, steps, ingredients, tags } = input;
       return await ctx.prisma.recipe.create({
         data: {
+          id: id,
           name: name,
           desc: desc,
           prepTime: prepTime,

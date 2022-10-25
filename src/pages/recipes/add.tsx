@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { GetServerSideProps, GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { useRouter } from 'next/router';
+import { PresignedPost } from 'aws-sdk/clients/s3';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
 import { Ingredient, Tag } from '@prisma/client';
 import { trpc } from '../../utils/trpc';
+import { useFileUpload } from '../../hooks/useFileUpload';
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
 import convertUnits, { forbiddenUnits } from '../../utils/convert-units';
@@ -64,6 +66,12 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
     },
   });
 
+  const createPresignedUrlMutation = trpc.useMutation(['s3.createPresignedUrl']);
+  const { file, fileRef, handleFileChange, uploadFile } = useFileUpload({
+    getUploadUrl: (id) => createPresignedUrlMutation.mutateAsync({ recipeId: id }) as Promise<PresignedPost>,
+    onFileUploaded: () => client.refetchQueries(['s3.getMultiplePresignedUrls']),
+  });
+
   const {
     register,
     handleSubmit,
@@ -84,8 +92,10 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
   const { fields: tagsFields, append: appendTag, remove: removeTag } = useFieldArray({ control, name: 'tags' });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
+    const newId = cuid();
     setDisabled(true);
     addRecipeMutation.mutate({
+      id: newId,
       name: data.name,
       desc: data.desc,
       prepTime: data.prepTime || null,
@@ -99,6 +109,9 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
       })),
       tags: data.tags.map((tag) => tag.tagId),
     });
+    if (file) {
+      uploadFile(newId);
+    }
   };
 
   const filteredIngredients = ingredients
@@ -132,6 +145,15 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
       <h1 className='text-xl font-bold'>Add new recipe:</h1>
       <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col gap-2'>
         <fieldset disabled={disabled}>
+          {/* PICTURE: */}
+          <div className='flex flex-col'>
+            {/* TODO preview selected file to upload */}
+            <label htmlFor='file-upload'>
+              <span>Upload picture</span>
+              <input ref={fileRef} id='file-upload' className='' onChange={handleFileChange} type='file'></input>
+            </label>
+          </div>
+
           {/* NAME: */}
           <label className='flex flex-col'>
             <span>Name:</span>

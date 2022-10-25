@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
+import { PresignedPost } from 'aws-sdk/clients/s3';
 import { Ingredient, Tag } from '@prisma/client';
 import { inferQueryOutput, trpc } from '../../utils/trpc';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
+import { useFileUpload } from '../../hooks/useFileUpload';
 import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { Combobox } from '@headlessui/react';
 import cuid from 'cuid';
 import convertUnits, { forbiddenUnits } from '../../utils/convert-units';
 import Link from 'next/link';
+import Image from 'next/image';
 import Content from '../../components/Content';
 import Loader from '../../components/Loader';
 import NewIngredientModal from '../../components/NewIngredientModal';
@@ -18,8 +21,9 @@ interface EditRecipeContentsProps {
   recipe: inferQueryOutput<'recipe.get-all'>[number];
   ingredients: inferQueryOutput<'ingredient.get-all'>;
   tags: inferQueryOutput<'tag.get-all'>;
+  presignedUrls: inferQueryOutput<'s3.getMultiplePresignedUrls'>;
 }
-const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredients, tags }) => {
+const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredients, tags, presignedUrls }) => {
   type Inputs = {
     id: string;
     name: string;
@@ -38,6 +42,8 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
   const [ingredientComboboxInputValue, setIngredientComboboxInputValue] = useState('');
   const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
   const [tagComboboxInputValue, setTagComboboxInputValue] = useState('');
+
+  const presignedUrl = presignedUrls?.get(recipe.id);
 
   const client = trpc.useContext();
   const addTagMutation = trpc.useMutation(['tag.add-tag'], {
@@ -72,6 +78,12 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
       client.invalidateQueries(['recipe.get-all']);
       router.push('/recipes');
     },
+  });
+
+  const createPresignedUrlMutation = trpc.useMutation(['s3.createPresignedUrl']);
+  const { file, fileRef, handleFileChange, uploadFile } = useFileUpload({
+    getUploadUrl: (id) => createPresignedUrlMutation.mutateAsync({ recipeId: id }) as Promise<PresignedPost>,
+    onFileUploaded: () => client.refetchQueries(['s3.getMultiplePresignedUrls']),
   });
 
   const {
@@ -132,6 +144,9 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
       })),
       tags: data.tags.map((tag) => tag.tagId),
     });
+    if (file) {
+      uploadFile(recipe.id);
+    }
   };
   const onDelete = () => {
     setDisabledOnDelete(true);
@@ -204,6 +219,19 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col gap-2'>
         <fieldset disabled={disabledOnSave || disabledOnDelete}>
+          {/* PICTURE: */}
+          <div className='flex flex-col'>
+            {presignedUrl && (
+              <div>
+                <Image src={presignedUrl} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
+              </div>
+            )}
+            <label htmlFor='file-upload'>
+              <span>Upload picture</span>
+              <input ref={fileRef} id='file-upload' className='' onChange={handleFileChange} type='file'></input>
+            </label>
+          </div>
+
           {/* NAME: */}
           <label className='flex flex-col'>
             <span>Name:</span>
@@ -511,11 +539,17 @@ const EditRecipePage = () => {
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
+  const recipeIdsArray = recipeData?.map((recipe) => recipe.id) || null;
+  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipeIdsArray }], {
+    staleTime: 900 * 1000,
+    cacheTime: 900 * 1000,
+  });
+
   const router = useRouter();
   const { id: selectedRecipeId } = router.query;
   const recipe = recipeData?.find((rec) => rec.id === selectedRecipeId);
 
-  if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData || isRecipesStale) {
+  if (recipeLoading || ingredientsLoading || tagsLoading || presignedUrlLoading || !recipeData || !ingredientsData || !tagsData || !presignedUrlsData || isRecipesStale) {
     return (
       <Content>
         <Loader text='Loading recipes...' />
@@ -529,7 +563,7 @@ const EditRecipePage = () => {
       </Content>
     );
   }
-  return <EditRecipeContents recipe={recipe} ingredients={ingredientsData} tags={tagsData} />;
+  return <EditRecipeContents recipe={recipe} ingredients={ingredientsData} tags={tagsData} presignedUrls={presignedUrlsData} />;
 };
 
 export default EditRecipePage;

@@ -14,6 +14,12 @@ const RecipesPage: NextPage = () => {
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
+  const recipeIdsArray = recipeData?.map((recipe) => recipe.id) || null;
+  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipeIdsArray }], {
+    staleTime: 900 * 1000,
+    cacheTime: 900 * 1000,
+  });
+
   const searchWords = useAtomValue(searchAtom);
   const [filteredRecipies, setFilteredRecipies] = useState<inferQueryOutput<'recipe.get-all'>>([]);
 
@@ -35,7 +41,7 @@ const RecipesPage: NextPage = () => {
     setFilteredRecipies(recipiesToSearchIn || []);
   }, [recipeData, searchWords]);
 
-  if (recipeLoading || ingredientsLoading || tagsLoading || !recipeData || !ingredientsData || !tagsData || isRecipesStale) {
+  if (recipeLoading || ingredientsLoading || tagsLoading || presignedUrlLoading || !recipeData || !ingredientsData || !tagsData || !presignedUrlsData || isRecipesStale) {
     return (
       <Content>
         <Loader text='Loading recipes...' />
@@ -48,7 +54,7 @@ const RecipesPage: NextPage = () => {
         {filteredRecipies
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard key={recipe.id} recipe={recipe} presignedUrl={presignedUrlsData.get(recipe.id)} />
           ))}
       </AutoAnimate>
     </Content>

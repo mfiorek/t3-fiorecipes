@@ -4,15 +4,19 @@ import { useRouter } from 'next/router';
 import { inferQueryOutput, trpc } from '../../utils/trpc';
 import { getServerAuthSession } from '../../server/common/get-server-auth-session';
 import Link from 'next/link';
+import Image from 'next/image';
 import Button from '../../components/Button';
 import Content from '../../components/Content';
 import Loader from '../../components/Loader';
 
 interface ViewRecipeContentsProps {
   recipe: inferQueryOutput<'recipe.get-all'>[number];
+  presignedUrls: inferQueryOutput<'s3.getMultiplePresignedUrls'>;
 }
-const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe }) => {
+const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe, presignedUrls }) => {
   const [servings, setServings] = useState<number>(recipe.servings);
+
+  const presignedUrl = presignedUrls?.get(recipe.id);
 
   const incrementServings = () => {
     setServings(Number(servings) + 1);
@@ -54,6 +58,11 @@ const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe }) => {
             </Link>
           </div>
         </div>
+        {presignedUrl && (
+          <div>
+            <Image src={presignedUrl} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
+          </div>
+        )}
         <div className='flex gap-2'>
           {recipe.tags
             .sort((a, b) => a.name.localeCompare(b.name))
@@ -121,11 +130,17 @@ const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe }) => {
 const ViewRecipePage = () => {
   const { data: recipeData, isLoading: recipeLoading, isStale: isRecipesStale } = trpc.useQuery(['recipe.get-all'], { staleTime: Infinity });
 
+  const recipeIdsArray = recipeData?.map((recipe) => recipe.id) || null;
+  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipeIdsArray }], {
+    staleTime: 900 * 1000,
+    cacheTime: 900 * 1000,
+  });
+
   const router = useRouter();
   const { id: selectedRecipeId } = router.query;
   const recipe = recipeData?.find((rec) => rec.id === selectedRecipeId);
 
-  if (recipeLoading || !recipeData || isRecipesStale) {
+  if (recipeLoading || presignedUrlLoading || !recipeData || !presignedUrlsData || isRecipesStale) {
     return (
       <Content>
         <Loader text='Loading recipes...' />
@@ -139,7 +154,7 @@ const ViewRecipePage = () => {
       </Content>
     );
   }
-  return <ViewRecipeContents recipe={recipe} />;
+  return <ViewRecipeContents recipe={recipe} presignedUrls={presignedUrlsData} />;
 };
 
 export default ViewRecipePage;

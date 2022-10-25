@@ -21,6 +21,6 @@ export default defineNextConfig({
     defaultLocale: 'en',
   },
   images: {
-    domains: ['avatars.githubusercontent.com'],
+    domains: ['avatars.githubusercontent.com', 'fiorecipes.s3.eu-central-1.amazonaws.com'],
   },
 });
