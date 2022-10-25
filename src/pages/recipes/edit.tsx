@@ -552,7 +552,7 @@ const EditRecipePage = () => {
   if (recipeLoading || ingredientsLoading || tagsLoading || presignedUrlLoading || !recipeData || !ingredientsData || !tagsData || !presignedUrlsData || isRecipesStale) {
     return (
       <Content>
-        <Loader text='Loading recipes...' />
+        <Loader text='Loading recipe...' />
       </Content>
     );
   }

@@ -143,7 +143,7 @@ const ViewRecipePage = () => {
   if (recipeLoading || presignedUrlLoading || !recipeData || !presignedUrlsData || isRecipesStale) {
     return (
       <Content>
-        <Loader text='Loading recipes...' />
+        <Loader text='Loading recipe...' />
       </Content>
     );
   }
