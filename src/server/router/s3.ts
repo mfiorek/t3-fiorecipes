@@ -30,7 +30,7 @@ export const s3Router = createProtectedRouter()
               ['content-length-range', 0, 20000000],
             ],
             Expires: 30,
-            Bucket: env.BUCKET_NAME,
+            Bucket: env.MF_BUCKET_NAME,
           },
           (err, signed) => {
             if (err) return reject(err);
@@ -49,7 +49,7 @@ export const s3Router = createProtectedRouter()
     resolve: ({ ctx, input }) => {
       const { recipeId } = input;
       const params = {
-        Bucket: env.BUCKET_NAME,
+        Bucket: env.MF_BUCKET_NAME,
         Key: getObjectKey({
           userId: ctx.session.user.id,
           recipeId: recipeId,
@@ -69,7 +69,7 @@ export const s3Router = createProtectedRouter()
       const map = new Map();
       arrayOfRecipeIds.forEach((recipeId) => {
         const params = {
-          Bucket: env.BUCKET_NAME,
+          Bucket: env.MF_BUCKET_NAME,
           Key: getObjectKey({
             userId: ctx.session.user.id,
             recipeId: recipeId,
