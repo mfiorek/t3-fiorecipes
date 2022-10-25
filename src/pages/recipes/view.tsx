@@ -58,7 +58,7 @@ const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe, presign
             </Link>
           </div>
         </div>
-        {presignedUrl && (
+        {recipe.hasPic && presignedUrl && (
           <div>
             <Image src={presignedUrl} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
           </div>
@@ -130,8 +130,8 @@ const ViewRecipeContents: React.FC<ViewRecipeContentsProps> = ({ recipe, presign
 const ViewRecipePage = () => {
   const { data: recipeData, isLoading: recipeLoading, isStale: isRecipesStale } = trpc.useQuery(['recipe.get-all'], { staleTime: Infinity });
 
-  const recipeIdsArray = recipeData?.map((recipe) => recipe.id) || null;
-  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipeIdsArray }], {
+  const recipesWithPicsIds = recipeData?.filter((recipe) => recipe.hasPic).map((recipe) => recipe.id) || null;
+  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipesWithPicsIds }], {
     staleTime: 900 * 1000,
     cacheTime: 900 * 1000,
   });

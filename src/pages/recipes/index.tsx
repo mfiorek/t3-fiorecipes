@@ -14,8 +14,8 @@ const RecipesPage: NextPage = () => {
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
-  const recipeIdsArray = recipeData?.map((recipe) => recipe.id) || null;
-  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipeIdsArray }], {
+  const recipesWithPicsIds = recipeData?.filter((recipe) => recipe.hasPic).map((recipe) => recipe.id) || null;
+  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipesWithPicsIds }], {
     staleTime: 900 * 1000,
     cacheTime: 900 * 1000,
   });

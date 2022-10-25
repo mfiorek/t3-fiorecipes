@@ -131,6 +131,7 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
     setDisabledOnSave(true);
     updateRecipeMutation.mutate({
       id: recipe.id,
+      hasPic: !!file,
       name: data.name,
       desc: data.desc,
       prepTime: data.prepTime || null,
@@ -221,7 +222,7 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
         <fieldset disabled={disabledOnSave || disabledOnDelete}>
           {/* PICTURE: */}
           <div className='flex flex-col'>
-            {presignedUrl && (
+            {recipe.hasPic && presignedUrl && (
               <div>
                 <Image src={presignedUrl} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
               </div>
@@ -539,8 +540,8 @@ const EditRecipePage = () => {
   const { data: ingredientsData, isLoading: ingredientsLoading } = trpc.useQuery(['ingredient.get-all']);
   const { data: tagsData, isLoading: tagsLoading } = trpc.useQuery(['tag.get-all']);
 
-  const recipeIdsArray = recipeData?.map((recipe) => recipe.id) || null;
-  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipeIdsArray }], {
+  const recipesWithPicsIds = recipeData?.filter((recipe) => recipe.hasPic).map((recipe) => recipe.id) || null;
+  const { data: presignedUrlsData, isLoading: presignedUrlLoading } = trpc.useQuery(['s3.getMultiplePresignedUrls', { arrayOfRecipeIds: recipesWithPicsIds }], {
     staleTime: 900 * 1000,
     cacheTime: 900 * 1000,
   });

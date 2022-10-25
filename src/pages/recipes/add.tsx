@@ -96,6 +96,7 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
     setDisabled(true);
     addRecipeMutation.mutate({
       id: newId,
+      hasPic: !!file,
       name: data.name,
       desc: data.desc,
       prepTime: data.prepTime || null,

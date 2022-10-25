@@ -11,7 +11,7 @@ interface RecipeCardProps {
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, presignedUrl }) => {
   return (
     <div className='flex w-full flex-col overflow-hidden rounded-xl bg-zinc-400'>
-      <Image src={presignedUrl} alt='recipe image' width={'590'} height={'590'} className='aspect-square object-cover' />
+      {recipe.hasPic && <Image src={presignedUrl} alt='recipe image' width={'590'} height={'590'} className='aspect-square object-cover' />}
       <div className='flex w-full flex-col gap-2'>
         <Link
           href={{

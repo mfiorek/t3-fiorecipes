@@ -19,6 +19,7 @@ enum UnitType {
 
 model Recipe {
     id                 String               @id @unique @default(cuid())
+    hasPic             Boolean              @default(false)
     name               String
     desc               String?
     prepTime           Int?

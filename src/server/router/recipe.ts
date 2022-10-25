@@ -6,6 +6,7 @@ export const recipeRouter = createProtectedRouter()
   .mutation('create', {
     input: z.object({
       id: z.string(),
+      hasPic: z.boolean(),
       name: z.string(),
       desc: z.string().nullable(),
       prepTime: z.number().nullable(),
@@ -22,10 +23,11 @@ export const recipeRouter = createProtectedRouter()
       tags: z.array(z.string()).nullable(),
     }),
     resolve: async ({ ctx, input }) => {
-      const { id, name, desc, prepTime, cooktime, servings, steps, ingredients, tags } = input;
+      const { id, hasPic, name, desc, prepTime, cooktime, servings, steps, ingredients, tags } = input;
       return await ctx.prisma.recipe.create({
         data: {
           id: id,
+          hasPic: hasPic,
           name: name,
           desc: desc,
           prepTime: prepTime,
@@ -85,6 +87,7 @@ export const recipeRouter = createProtectedRouter()
   .mutation('update', {
     input: z.object({
       id: z.string(),
+      hasPic: z.boolean(),
       name: z.string(),
       desc: z.string().nullable(),
       prepTime: z.number().nullable(),
@@ -101,12 +104,13 @@ export const recipeRouter = createProtectedRouter()
       tags: z.array(z.string()).nullable(),
     }),
     resolve: async ({ ctx, input }) => {
-      const { id, name, desc, prepTime, cooktime, servings, steps, ingredients, tags } = input;
+      const { id, hasPic, name, desc, prepTime, cooktime, servings, steps, ingredients, tags } = input;
       return await ctx.prisma.recipe.update({
         where: {
           id,
         },
         data: {
+          hasPic: hasPic,
           name: name,
           desc: desc,
           prepTime: prepTime,
