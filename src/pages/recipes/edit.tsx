@@ -42,6 +42,7 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
   const [ingredientComboboxInputValue, setIngredientComboboxInputValue] = useState('');
   const [newIngredientModalOpen, setNewIngredientModalOpen] = useState(false);
   const [tagComboboxInputValue, setTagComboboxInputValue] = useState('');
+  const [deletePic, setDeletePic] = useState(false);
 
   const presignedUrl = presignedUrls?.get(recipe.id);
 
@@ -67,6 +68,7 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
   const updateRecipeMutation = trpc.useMutation(['recipe.update'], {
     onSuccess: () => {
       client.invalidateQueries(['recipe.get-all']);
+      client.invalidateQueries(['s3.getMultiplePresignedUrls']);
       router.push({
         pathname: '/recipes/view',
         query: { id: recipe.id },
@@ -85,6 +87,7 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
     getUploadUrl: (id) => createPresignedUrlMutation.mutateAsync({ recipeId: id }) as Promise<PresignedPost>,
     onFileUploaded: () => client.refetchQueries(['s3.getMultiplePresignedUrls']),
   });
+  const imageSrc = file ? URL.createObjectURL(file) : presignedUrl;
 
   const {
     register,
@@ -131,7 +134,7 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
     setDisabledOnSave(true);
     updateRecipeMutation.mutate({
       id: recipe.id,
-      hasPic: !!file,
+      hasPic: (recipe.hasPic && !deletePic) || !!file,
       name: data.name,
       desc: data.desc,
       prepTime: data.prepTime || null,
@@ -222,15 +225,47 @@ const EditRecipeContents: React.FC<EditRecipeContentsProps> = ({ recipe, ingredi
         <fieldset disabled={disabledOnSave || disabledOnDelete}>
           {/* PICTURE: */}
           <div className='flex flex-col'>
-            {recipe.hasPic && presignedUrl && (
+            {((recipe.hasPic && !deletePic && presignedUrl) || file) && (
               <div>
-                <Image src={presignedUrl} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
+                <Image src={imageSrc} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
               </div>
             )}
-            <label htmlFor='file-upload'>
-              <span>Upload picture</span>
-              <input ref={fileRef} id='file-upload' className='' onChange={handleFileChange} type='file'></input>
-            </label>
+
+            <div className='flex gap-2'>
+              <input
+                ref={fileRef}
+                id='file-upload'
+                className='peer hidden'
+                onChange={(e) => {
+                  handleFileChange(e);
+                  setDeletePic(false);
+                }}
+                type='file'
+                disabled={disabledOnSave || disabledOnDelete}
+              ></input>
+              <label
+                htmlFor='file-upload'
+                className='cursor-pointer items-center gap-2 rounded bg-lime-500 bg-opacity-80 px-2 py-1 hover:bg-opacity-100 peer-disabled:cursor-not-allowed'
+              >
+                <span>{recipe.hasPic || file ? 'Upload new picture' : 'Upload picture'}</span>
+              </label>
+              {((recipe.hasPic && !deletePic) || file) && (
+                <button
+                  className='cursor-pointer rounded bg-red-400 bg-opacity-80 px-2 py-1 hover:bg-opacity-100 disabled:cursor-not-allowed'
+                  onClick={() => {
+                    handleFileChange(null);
+                    setDeletePic(true);
+                    if (fileRef.current) {
+                      fileRef.current.value = '';
+                    }
+                  }}
+                  type='button'
+                  disabled={disabledOnSave || disabledOnDelete}
+                >
+                  Remove picture
+                </button>
+              )}
+            </div>
           </div>
 
           {/* NAME: */}

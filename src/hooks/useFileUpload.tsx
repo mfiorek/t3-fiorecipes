@@ -5,8 +5,8 @@ export const useFileUpload = ({ onFileUploaded, getUploadUrl }: { onFileUploaded
   const [file, setFile] = useState<File>();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.FormEvent<HTMLInputElement>) => {
-    setFile(e.currentTarget.files?.[0]);
+  const handleFileChange = (e: React.FormEvent<HTMLInputElement> | null) => {
+    setFile(e?.currentTarget?.files?.[0]);
   };
 
   const uploadFile = async (id: string) => {

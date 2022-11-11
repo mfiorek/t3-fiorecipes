@@ -15,6 +15,7 @@ import Button from '../../components/Button';
 import NewIngredientModal from '../../components/NewIngredientModal';
 import Loader from '../../components/Loader';
 import Content from '../../components/Content';
+import Image from 'next/image';
 
 interface AddNewRecipeContentsProps {
   userId: string;
@@ -148,11 +149,36 @@ const AddNewRecipeContents: React.FC<AddNewRecipeContentsProps> = ({ userId, ing
         <fieldset disabled={disabled}>
           {/* PICTURE: */}
           <div className='flex flex-col'>
-            {/* TODO preview selected file to upload */}
-            <label htmlFor='file-upload'>
-              <span>Upload picture</span>
-              <input ref={fileRef} id='file-upload' className='' onChange={handleFileChange} type='file'></input>
-            </label>
+            {file && (
+              <div>
+                <Image src={URL.createObjectURL(file)} alt='recipe image' width={'400'} height={'400'} className='aspect-square object-cover' />
+              </div>
+            )}
+
+            <div className='flex gap-2'>
+              <input ref={fileRef} id='file-upload' className='peer hidden' onChange={handleFileChange} type='file' disabled={disabled}></input>
+              <label
+                htmlFor='file-upload'
+                className='cursor-pointer items-center gap-2 rounded bg-lime-500 bg-opacity-80 px-2 py-1 hover:bg-opacity-100 peer-disabled:cursor-not-allowed'
+              >
+                <span>{file ? 'Upload new picture' : 'Upload picture'}</span>
+              </label>
+              {file && (
+                <button
+                  className='cursor-pointer rounded bg-red-400 bg-opacity-80 px-2 py-1 hover:bg-opacity-100 disabled:cursor-not-allowed'
+                  onClick={() => {
+                    handleFileChange(null);
+                    if (fileRef.current) {
+                      fileRef.current.value = '';
+                    }
+                  }}
+                  type='button'
+                  disabled={disabled}
+                >
+                  Remove picture
+                </button>
+              )}
+            </div>
           </div>
 
           {/* NAME: */}
